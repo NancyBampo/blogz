@@ -1,27 +1,16 @@
-from flask import Flask, request, redirect, render_template
-from flask_sqlalchemy import SQLAlchemy
-
-app = Flask(__name__)
-app.config['DEBUG'] = True
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://build-a-blog:password@localhost:8889/build-a-blog'
-app.config['SQLALCHEMY_ECHO'] = True
-db = SQLAlchemy(app)
+from flask import request, redirect, render_template
+#from flask_sqlalchemy import SQLAlchemy
 
 
-class Blog(db.Model):
+from app import app, db
+from models import User, Blog
+from hashutils import make_pw_hash, check_pw_hash
 
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(120))
-    body = db.Column(db.Text)
-
-    def __init__(self, title, body):
-        self.title = title
-        self.body = body
 
 
 @app.route('/newpost', methods=['POST','GET'])
 def addpost():
-    
+    owner = User.query.filter_by(email=email).first()
 
     if request.method == 'POST':
         title_name = request.form['title']
@@ -36,7 +25,8 @@ def addpost():
             blog_error = "Please fill in the body"
          
         if not title_error and not blog_error:
-            new_blog = Blog(title_name, blog_name)
+
+            new_blog = Blog(title_name, blog_name, owner)
             db.session.add(new_blog)
             db.session.commit()  
             return redirect('/blog?id={}'.format(new_blog.id))
@@ -62,6 +52,51 @@ def mainblog():
         return render_template('indi_post.html', blog=post)
     
 
+@app.route("/login", methods=['GET', 'POST'])
+def login():
+    if request.method == 'GET':
+        return render_template('login.html')
+    elif request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        users = User.query.filter_by(username=username)
+        if users.count() == 1:
+            user = users.first()
+            if password and check_pw_hash(password,user.pw_hash):
+                session['user'] = user.username
+                flash('welcome back, '+user.username)
+                return redirect("/")
+        flash('bad username or password')
+        return redirect("/login")
+
+@app.route("/register", methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        verify = request.form['verify']
+
+        if ' ' in username:
+            flash("You can't have space in your username")
+            return redirect('/register')
+        if username == '':
+            flash("Please fill in username")
+            return redirect('/register')
+        
+        username_db_count = User.query.filter_by(username=username).count()
+        if username_db_count > 0:
+            flash('yikes! "' + username + '" is already taken')
+            return redirect('/register')
+        if password != verify:
+            flash('passwords did not match')
+            return redirect('/register')
+        user = User(username=username, password=password)
+        db.session.add(user)
+        db.session.commit()
+        session['user'] = user.email
+        return redirect("/")
+    else:
+        return render_template('signup.html')
 
 
 @app.route('/')
