@@ -26,22 +26,28 @@
                 font: 16px sans-serif;
                 border-radius: 15px;
             }
+        
         </style>
     </head>
 <body>
 
     <div>
-        <a href='/blog'>Home</a>
+        <a href='/'>Home</a>
         &nbsp;
         <a href='/newpost'>Add Blog</a>
-        <!-- &nbsp;
-        <a href='' -->
-    </div>
-    <div>
-        <a href='/login'>Login</a>
         &nbsp;
-        <a href='/logout'>Logout</a>
+        <a href='/allpost'>All Posts</a>
     </div>
+    <div style='float: right'>
+        {% if 'user' in session %}
+          {{ session['user'] }}
+          <form action="/logout" method="post" id='logout'>
+            <input type="submit" value="Log Out" />
+          </form>
+        {% else %}
+          <a href="login">login</a>
+        {% endif %}
+        </div>
 
     {% with messages = get_flashed_messages(with_categories=True) %}
         <ul>

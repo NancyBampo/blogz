@@ -7,6 +7,10 @@ from models import User, Blog
 from hashutils import make_pw_hash, check_pw_hash
 
 
+def get_blog(current_user_id):
+    return Blog.query.filter_by(owner_id=current_user_id).all()
+
+
 
 @app.route('/newpost', methods=['POST','GET'])
 def addpost():
@@ -38,18 +42,67 @@ def addpost():
         return render_template('addpost.html')
     
 
+@app.route('/allpost')
+def all_blogs():
+    posts= Blog.query.all()
+    username= request.args.get('owner')
+    return render_template('allblog.html', posts=posts, username=username,)
 
 
+# @app.route('/blog')
+# def mainblog():
+#     blog_id = request.args.get('id')
+#     if blog_id == None:
+#         posts = get_blog(logged_in_user().id)
+#         return render_template('blog.html', posts=posts)
+    
+#     else:
+#         post = Blog.query.get(blog_id)
+#         return render_template('indi_post.html', blog=post)
+    
+#     owner_name = request.args.get('owner')
+#     if owner_name == None:
+#         username = User.query.filter_by(username=owner_name).first()
+#         blogs= Blog.query.filter_by(owner=username).all()
+#         return render_template('singleuser.html',posts=blogs)
+    # posts = Blog.query.all()
+    # return render_template('blog.html', posts=posts)
+
+    
 @app.route('/blog')
-def mainblog():
+def blog():
+    posts = Blog.query.all()
     blog_id = request.args.get('id')
-
-    if blog_id == None:
-        posts = Blog.query.all()
-        return render_template('blog.html', posts=posts)
-    else:
+    user_id = request.args.get('owner')
+    username = User.query.filter_by(username=user_id).first()
+    
+    if username:
+        posts= Blog.query.filter_by(owner=username).all
+        return render_template('singleuser.html', blogs=posts)
+    if blog_id:
         post = Blog.query.get(blog_id)
-        return render_template('indi_post.html', blog=post)
+        return render_template('indi_post.html', blog=post )
+
+    return render_template('blog.html', posts=posts)
+    
+        
+    # if  user_name == None:
+    #     posts = get_blog(logged_in_user().id)
+    #     return render_template('blog.html', posts=posts)
+    # else:
+    #     user = Blog.query.get(username)
+    #     return render_template('blog.html;',user=user)
+# @app.route('/blog')
+# def name_blog():
+    
+#     owner_name = request.args.get('owner')
+#     username = User.query.filter_by(username=owner_name).first()
+#     if username:
+#         blogs= Blog.query.filter_by(owner=username).all
+#         return render_template('blog.html',blogs_user=blogs)
+#     posts = Blog.query.all()
+#     return render_template('blog.html', posts=posts)
+
     
 
 @app.route("/login", methods=['GET', 'POST'])
@@ -65,7 +118,7 @@ def login():
             if password and check_pw_hash(password,user.pw_hash):
                 session['user'] = user.username
                 flash('welcome back, '+ user.username)
-                return redirect("/blog")
+                return redirect("/newpost")
         flash('bad username or password','error')
         return redirect("/login")
 
@@ -94,12 +147,12 @@ def signup():
         db.session.add(user)
         db.session.commit()
         session['user'] = user.username
-        return redirect("/blog")
+        return redirect("/newpost")
     else:
         return render_template('signup.html')
 
 
-@app.route('/logout')
+@app.route('/logout',methods=["POST"])
 def logout():
     del session['user']
     return redirect('/login')
@@ -118,6 +171,11 @@ def require_login():
         return redirect("/login")
 
 app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RU'
+
+@app.route('/')
+def index():    
+    users = User.query.all()
+    return render_template('index.html', users=users)
 
 if __name__ == '__main__':
     app.run()
