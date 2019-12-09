@@ -49,62 +49,23 @@ def all_blogs():
     return render_template('allblog.html', posts=posts, username=username,)
 
 
-# @app.route('/blog')
-# def mainblog():
-#     blog_id = request.args.get('id')
-#     if blog_id == None:
-#         posts = get_blog(logged_in_user().id)
-#         return render_template('blog.html', posts=posts)
-    
-#     else:
-#         post = Blog.query.get(blog_id)
-#         return render_template('indi_post.html', blog=post)
-    
-#     owner_name = request.args.get('owner')
-#     if owner_name == None:
-#         username = User.query.filter_by(username=owner_name).first()
-#         blogs= Blog.query.filter_by(owner=username).all()
-#         return render_template('singleuser.html',posts=blogs)
-    # posts = Blog.query.all()
-    # return render_template('blog.html', posts=posts)
-
-    
 @app.route('/blog')
-def blog():
-    posts = Blog.query.all()
+def mainblog():
     blog_id = request.args.get('id')
-    user_id = request.args.get('owner')
-    username = User.query.filter_by(username=user_id).first()
-    
-    if username:
-        posts= Blog.query.filter_by(owner=username).all
+    owner_name = request.args.get('owner')
+    if blog_id == None:
+        username = User.query.filter_by(username=owner_name).first()
+        posts = Blog.query.filter_by(owner=username).all()
         return render_template('singleuser.html', blogs=posts)
-    if blog_id:
+    
+    else:
         post = Blog.query.get(blog_id)
-        return render_template('indi_post.html', blog=post )
+        return render_template('indi_post.html', blog=post)
 
-    return render_template('blog.html', posts=posts)
+    # username = User.query.filter_by(username=owner_name).first()
+    # posts = Blog.query.filter_by(owner=username).all()
+    # return render_template('singleuser.html', blogs=posts, posts=posts)
     
-        
-    # if  user_name == None:
-    #     posts = get_blog(logged_in_user().id)
-    #     return render_template('blog.html', posts=posts)
-    # else:
-    #     user = Blog.query.get(username)
-    #     return render_template('blog.html;',user=user)
-# @app.route('/blog')
-# def name_blog():
-    
-#     owner_name = request.args.get('owner')
-#     username = User.query.filter_by(username=owner_name).first()
-#     if username:
-#         blogs= Blog.query.filter_by(owner=username).all
-#         return render_template('blog.html',blogs_user=blogs)
-#     posts = Blog.query.all()
-#     return render_template('blog.html', posts=posts)
-
-    
-
 @app.route("/login", methods=['GET', 'POST'])
 def login():
     if request.method == 'GET':
