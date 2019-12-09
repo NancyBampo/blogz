@@ -124,7 +124,7 @@ def logged_in_user():
     owner = User.query.filter_by(username=session['user']).first()
     return owner
 
-endpoints_without_login = ['login', 'signup']
+endpoints_without_login = ['login', 'signup','index']
 
 @app.before_request
 def require_login():
