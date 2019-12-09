@@ -116,7 +116,7 @@ def signup():
 @app.route('/logout',methods=["POST"])
 def logout():
     del session['user']
-    return redirect('/login')
+    return redirect('/allpost')
 
 
 
@@ -124,7 +124,7 @@ def logged_in_user():
     owner = User.query.filter_by(username=session['user']).first()
     return owner
 
-endpoints_without_login = ['login', 'signup','index']
+endpoints_without_login = ['login', 'signup','index', 'all_blogs','mainblog']
 
 @app.before_request
 def require_login():
